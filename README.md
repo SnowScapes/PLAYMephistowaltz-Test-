@@ -2,7 +2,7 @@
 
 <details>
   <summary>
-    <b>Singleton<T></b> 으로 사용 될 클래스를 위한 Generic 클래스
+    <b>1. Singleton<T></b> 으로 사용 될 클래스를 위한 Generic 클래스
   </summary>
 
   ```csharp
@@ -61,7 +61,7 @@ public  class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 
 <details>
   <summary>
-    모든 풀링 오브젝트가 관리되는 하나의 <b>ObjectPool</b>
+    <b>2. </b>모든 풀링 오브젝트가 관리되는 하나의 <b>ObjectPool</b>
   </summary>
 
   ```csharp
@@ -110,3 +110,106 @@ public class ObjectPool : Singleton<ObjectPool>
 }
   ```
 </details>
+
+<details>
+  <summary>
+    <b>3. Dictionary 직렬화</b>를 위한 SerializableDictionary
+  </summary>
+
+  ```csharp
+  using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+// 기본 Unity Inspector에서 KeyValuePair가 직렬화 되지 않아 만든 클래스
+[Serializable]
+public class SerializableKeyValue<K, V>
+{
+    public K Key;
+    public V Value;
+}
+
+// 기본 Unity Inspector에서 Dictionary가 직렬화 되지 않아 만든 클래스
+[Serializable]
+public class SerializableDictionary<K, V> : Dictionary<K, V>, ISerializationCallbackReceiver
+{
+    [SerializeField] private List<SerializableKeyValue<K, V>> _keyValueList;
+
+    public void OnBeforeSerialize()
+    {
+        if (this.Count < _keyValueList.Count)
+        {
+            return;
+        }
+
+        _keyValueList.Clear();
+
+        foreach (var kv in this)
+        {
+            _keyValueList.Add(new SerializableKeyValue<K, V>()
+            {
+                Key = kv.Key,
+                Value = kv.Value
+            });
+        }
+    }
+
+    public void OnAfterDeserialize()
+    {
+        this.Clear();
+        // 중복된 키가 있을 경우 에러 발생
+        foreach (var kv in _keyValueList)
+        {
+            if (!this.TryAdd(kv.Key, kv.Value))
+            {
+                Debug.LogError($"List has duplicate Key : {kv.Key}");
+            }
+        }
+    }
+}
+  ```
+</details>
+
+<details>
+  <summary>
+    <b>4. InputSystem의 Event</b>로 관리되는 Input
+  </summary>
+
+  ```csharp
+  private PlayerInput input => InputManager.Instance.Input;
+
+  // InputAction의 각 Action에 실행될 메서드 구독 및 Input 활성화
+private void OnEnable()
+{
+    input.Player.Move.performed += OnMove;
+    input.Player.Move.canceled += OnMove;
+    input.Player.Look.performed += OnLook;
+    input.Player.Shoot.performed += OnShoot;
+    input.Player.Enable();
+}
+
+// InputAction의 각 Action에 실행될 메서드 구독해제 및 Input 비활성화
+private void OnDisable()
+{
+    input.Player.Move.performed -= OnMove;
+    input.Player.Move.canceled -= OnMove;
+    input.Player.Look.performed -= OnLook;
+    input.Player.Shoot.performed -= OnShoot;
+    input.Player.Disable();
+}
+
+private void OnEnable()
+{
+    input.Player.Move.performed += MoveAnimation;
+    input.Player.Move.canceled += MoveAnimation;
+}
+
+private void OnDisable()
+{
+    input.Player.Move.performed -= MoveAnimation;
+    input.Player.Move.canceled -= MoveAnimation;
+}
+  ```
+</details>
+
+<b>5. 전략패턴을 활용하여 데미지 처리를 위한 IDamage</b>
