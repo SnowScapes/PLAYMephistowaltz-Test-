@@ -2,7 +2,7 @@
 
 <details>
   <summary>
-    <b>Singleton<T></b> 싱글톤으로 사용 될 클래스를 위한 Generic 클래스
+    <b>Singleton\<T\></b> 싱글톤으로 사용 될 클래스를 위한 Generic 클래스
   </summary>
 
   ```csharp
@@ -10,7 +10,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public  class Singleton\<T\> : MonoBehaviour where T : MonoBehaviour
+public  class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 {
     // 싱글톤 패턴을 적용할 클래스에 공통적으로 상속해주기 위한 클래스
 
